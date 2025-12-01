@@ -1,13 +1,14 @@
 .page-layout {
     display: flex;
     min-height: calc(100vh - 60px);
-    background-color: var(--bg-primary);
+    background-color: #0a0e27;
 }
 
 .page-content {
     flex: 1;
     padding: 40px;
     overflow-y: auto;
+    background: #0a0e27;
 }
 
 .dashboard-header {
@@ -21,17 +22,15 @@
 }
 
 .dashboard-server-icon {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    border: 3px solid var(--accent);
-    box-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
-    transition: all 0.3s ease;
+    border: 2px solid var(--accent);
+    transition: all 0.2s ease;
 }
 
 .dashboard-server-icon:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 40px rgba(0, 217, 255, 0.7);
+    border-color: var(--accent-hover);
 }
 
 .dashboard-server-info h1 {
@@ -56,68 +55,38 @@
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    border-radius: 16px;
-    padding: 28px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 24px;
     display: flex;
     align-items: center;
     gap: 20px;
     border: 1px solid var(--border);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 217, 255, 0.05);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
+    background: var(--bg-tertiary);
     border-color: var(--accent);
-    box-shadow: 0 12px 40px rgba(0, 217, 255, 0.3), inset 0 0 30px rgba(0, 217, 255, 0.1);
-}
-
-.stat-card:hover::before {
-    opacity: 1;
 }
 
 .stat-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-    box-shadow: 0 0 20px rgba(0, 217, 255, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover .stat-icon {
-    box-shadow: 0 0 30px rgba(0, 217, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.2);
-    transform: scale(1.1) rotate(5deg);
+    color: #0a0e27;
+    background: var(--accent);
+    font-size: 24px;
 }
 
 .stat-info h3 {
-    font-size: 32px;
+    font-size: 28px;
     margin-bottom: 6px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.3));
+    color: var(--text-primary);
 }
 
 .stat-info p {
@@ -137,18 +106,18 @@
 
 .logs-table th {
     text-align: left;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
     color: var(--accent);
-    font-weight: 700;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 2px solid var(--accent);
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--accent);
 }
 
 .logs-table td {
-    padding: 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--bg-tertiary);
     color: var(--text-primary);
     font-size: 14px;

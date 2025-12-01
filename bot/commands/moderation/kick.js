@@ -17,8 +17,16 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
     
     async execute(interaction) {
+        // Check MongoDB connection
+        if (!interaction.client.mongoConnected) {
+            return await interaction.reply({
+                content: '❌ Database is not connected. Please try again in a moment.',
+                ephemeral: true
+            });
+        }
+        
         // Defer immediately to prevent timeout
-        await interaction.deferReply({ flags: 64 });
+        await interaction.deferReply({ ephemeral: true });
         
         const user = interaction.options.getUser('user');
         const member = interaction.guild.members.cache.get(user.id);
@@ -72,8 +80,7 @@ module.exports = {
             console.log(`📝 Kick logged with case ID: ${caseId}`);
             
             await interaction.editReply({
-                content: `✅ Successfully kicked ${user.tag} | Case #${caseId}`,
-                flags: 64
+                content: `✅ Successfully kicked ${user.tag} | Case #${caseId}`
             });
             
         } catch (error) {

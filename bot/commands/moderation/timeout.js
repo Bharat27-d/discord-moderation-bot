@@ -22,8 +22,16 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     
     async execute(interaction) {
+        // Check MongoDB connection
+        if (!interaction.client.mongoConnected) {
+            return await interaction.reply({
+                content: '❌ Database is not connected. Please try again in a moment.',
+                ephemeral: true
+            });
+        }
+        
         // Defer immediately to prevent timeout
-        await interaction.deferReply({ flags: 64 });
+        await interaction.deferReply({ ephemeral: true });
         
         const user = interaction.options.getUser('user');
         const member = interaction.guild.members.cache.get(user.id);
@@ -68,8 +76,7 @@ module.exports = {
             }, settings);
             
             await interaction.editReply({
-                content: `✅ Successfully timed out ${user.tag} for ${duration} | Case #${caseId}`,
-                flags: 64
+                content: `✅ Successfully timed out ${user.tag} for ${duration} | Case #${caseId}`
             });
             
             // Try to DM the user

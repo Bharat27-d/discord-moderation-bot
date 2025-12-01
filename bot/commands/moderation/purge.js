@@ -18,7 +18,7 @@ module.exports = {
     
     async execute(interaction) {
         // Defer immediately to prevent timeout
-        await interaction.deferReply({ flags: 64 });
+        await interaction.deferReply({ ephemeral: true });
         
         const amount = interaction.options.getInteger('amount');
         const targetUser = interaction.options.getUser('user');

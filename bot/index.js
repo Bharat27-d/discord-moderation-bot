@@ -1,8 +1,6 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js');
 const mongoose = require('mongoose');
 const config = require('./config');
-const fs = require('fs');
-const path = require('path');
 
 const client = new Client({
     intents: [
@@ -10,7 +8,16 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildModeration
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions
+    ],
+    partials: [
+        Partials.Message,
+        Partials.Channel,
+        Partials.Reaction,
+        Partials.User,
+        Partials.GuildMember
     ]
 });
 
@@ -33,6 +40,10 @@ async function connectMongoDB() {
         // Load handlers AFTER MongoDB is connected
         require('./handlers/commandHandler')(client);
         require('./handlers/eventHandler')(client);
+        
+        // Start scheduler for announcements and reminders
+        const { startScheduler } = require('./utils/scheduler');
+        startScheduler(client);
         
     } catch (err) {
         console.error('❌ MongoDB connection error:', err.message);

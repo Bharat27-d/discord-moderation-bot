@@ -4,22 +4,32 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiTrash2, FiSend } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiSend, FiBold, FiItalic, FiCode, FiLink, FiClock, FiAtSign, FiUsers } from 'react-icons/fi';
 import './EmbedBuilder.css';
 
 function EmbedBuilder() {
     const { id } = useParams();
     const [channels, setChannels] = useState([]);
+    const [members, setMembers] = useState([]);
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [showMemberModal, setShowMemberModal] = useState(false);
+    const [showRoleModal, setShowRoleModal] = useState(false);
+    const [activeField, setActiveField] = useState(null);
     
     const [embed, setEmbed] = useState({
         title: '',
         description: '',
         color: '#5865f2',
+        url: '',
         thumbnail: '',
         image: '',
-        footer: '',
+        footer: {
+            text: '',
+            iconURL: ''
+        },
+        timestamp: false,
         author: {
             name: '',
             iconURL: ''
@@ -31,17 +41,37 @@ function EmbedBuilder() {
 
     useEffect(() => {
         fetchChannels();
+        fetchMembers();
+        fetchRoles();
     }, [id]);
 
     const fetchChannels = async () => {
         try {
-            const response = await api. get(`/api/server/${id}/channels`);
+            const response = await api.get(`/api/server/${id}/channels`);
             setChannels(response.data.channels);
         } catch (error) {
             console.error('Failed to fetch channels:', error);
             toast.error('Failed to load channels');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchMembers = async () => {
+        try {
+            const response = await api.get(`/api/server/${id}/members`);
+            setMembers(response.data.members || []);
+        } catch (error) {
+            console.error('Failed to fetch members:', error);
+        }
+    };
+
+    const fetchRoles = async () => {
+        try {
+            const response = await api.get(`/api/server/${id}/roles`);
+            setRoles(response.data.roles || []);
+        } catch (error) {
+            console.error('Failed to fetch roles:', error);
         }
     };
 
@@ -60,6 +90,118 @@ function EmbedBuilder() {
                 [field]: value
             }
         }));
+    };
+
+    const updateFooter = (field, value) => {
+        setEmbed(prev => ({
+            ...prev,
+            footer: {
+                ...prev.footer,
+                [field]: value
+            }
+        }));
+    };
+
+    const insertFormatting = (field, format) => {
+        const textarea = document.querySelector(`textarea[data-field="${field}"]`);
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selectedText = text.substring(start, end) || 'text';
+        
+        let formattedText = '';
+        let cursorOffset = 0;
+
+        switch(format) {
+            case 'bold':
+                formattedText = `**${selectedText}**`;
+                cursorOffset = 2;
+                break;
+            case 'italic':
+                formattedText = `*${selectedText}*`;
+                cursorOffset = 1;
+                break;
+            case 'underline':
+                formattedText = `__${selectedText}__`;
+                cursorOffset = 2;
+                break;
+            case 'strikethrough':
+                formattedText = `~~${selectedText}~~`;
+                cursorOffset = 2;
+                break;
+            case 'code':
+                formattedText = `\`${selectedText}\``;
+                cursorOffset = 1;
+                break;
+            case 'codeblock':
+                formattedText = `\`\`\`\n${selectedText}\n\`\`\``;
+                cursorOffset = 4;
+                break;
+            case 'link':
+                formattedText = `[${selectedText}](url)`;
+                cursorOffset = selectedText.length + 3;
+                break;
+            default:
+                return;
+        }
+
+        const newText = text.substring(0, start) + formattedText + text.substring(end);
+        
+        if (field === 'description') {
+            updateEmbed('description', newText);
+        } else {
+            const fieldIndex = parseInt(field.replace('field-', ''));
+            updateField(fieldIndex, 'value', newText);
+        }
+
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + selectedText.length);
+        }, 0);
+    };
+
+    const insertMention = (field, type, id, name) => {
+        const textarea = document.querySelector(`textarea[data-field="${field}"]`);
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        
+        const mention = type === 'user' ? `<@${id}>` : `<@&${id}>`;
+        const newText = text.substring(0, start) + mention + text.substring(end);
+        
+        if (field === 'description') {
+            updateEmbed('description', newText);
+        } else {
+            const fieldIndex = parseInt(field.replace('field-', ''));
+            updateField(fieldIndex, 'value', newText);
+        }
+
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + mention.length, start + mention.length);
+        }, 0);
+        
+        setShowMemberModal(false);
+        setShowRoleModal(false);
+        toast.success(`Added ${type} mention: ${name}`);
+    };
+
+    const formatMarkdownForPreview = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/__(.+?)__/g, '<u>$1</u>')
+            .replace(/~~(.+?)~~/g, '<del>$1</del>')
+            .replace(/`(.+?)`/g, '<code>$1</code>')
+            .replace(/<@!?(\d+)>/g, '<span class="mention-user">@user</span>')
+            .replace(/<@&(\d+)>/g, '<span class="mention-role">@role</span>')
+            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/\n/g, '<br/>');
     };
 
     const addField = () => {
@@ -117,9 +259,14 @@ function EmbedBuilder() {
                 title: '',
                 description: '',
                 color: '#5865f2',
+                url: '',
                 thumbnail: '',
                 image: '',
-                footer: '',
+                footer: {
+                    text: '',
+                    iconURL: ''
+                },
+                timestamp: false,
                 author: {
                     name: '',
                     iconURL: ''
@@ -219,12 +366,54 @@ function EmbedBuilder() {
                                     </div>
 
                                     <div className="form-group">
+                                        <label className="form-label">URL (Title Link)</label>
+                                        <input 
+                                            type="text"
+                                            className="form-input"
+                                            value={embed.url}
+                                            onChange={(e) => updateEmbed('url', e.target.value)}
+                                            placeholder="https://example.com"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
                                         <label className="form-label">Description</label>
+                                        <div className="formatting-toolbar">
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'bold')} title="Bold">
+                                                <FiBold />
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'italic')} title="Italic">
+                                                <FiItalic />
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'underline')} title="Underline">
+                                                <span style={{fontWeight: 'bold', textDecoration: 'underline'}}>U</span>
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'strikethrough')} title="Strikethrough">
+                                                <span style={{textDecoration: 'line-through'}}>S</span>
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'code')} title="Inline Code">
+                                                <FiCode />
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'codeblock')} title="Code Block">
+                                                <span style={{fontFamily: 'monospace'}}>{'{}'}</span>
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => insertFormatting('description', 'link')} title="Link">
+                                                <FiLink />
+                                            </button>
+                                            <div className="toolbar-divider"></div>
+                                            <button type="button" className="format-btn" onClick={() => { setActiveField('description'); setShowMemberModal(true); }} title="Mention User">
+                                                <FiAtSign />
+                                            </button>
+                                            <button type="button" className="format-btn" onClick={() => { setActiveField('description'); setShowRoleModal(true); }} title="Mention Role">
+                                                <FiUsers />
+                                            </button>
+                                        </div>
                                         <textarea 
                                             className="form-textarea"
+                                            data-field="description"
                                             value={embed.description}
                                             onChange={(e) => updateEmbed('description', e.target.value)}
-                                            placeholder="Embed description"
+                                            placeholder="Embed description\n\nSupports: **bold** *italic* __underline__ ~~strikethrough~~ `code` [link](url)"
                                             rows="5"
                                         />
                                     </div>
@@ -271,14 +460,37 @@ function EmbedBuilder() {
                                     </div>
 
                                     <div className="form-group">
-                                        <label className="form-label">Footer</label>
+                                        <label className="form-label">Footer Text</label>
                                         <input 
                                             type="text"
                                             className="form-input"
-                                            value={embed.footer}
-                                            onChange={(e) => updateEmbed('footer', e.target. value)}
+                                            value={embed.footer.text}
+                                            onChange={(e) => updateFooter('text', e.target.value)}
                                             placeholder="Footer text"
                                         />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Footer Icon URL</label>
+                                        <input 
+                                            type="text"
+                                            className="form-input"
+                                            value={embed.footer.iconURL}
+                                            onChange={(e) => updateFooter('iconURL', e.target.value)}
+                                            placeholder="https://example.com/footer-icon.png"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <input 
+                                                type="checkbox"
+                                                className="form-checkbox"
+                                                checked={embed.timestamp}
+                                                onChange={(e) => updateEmbed('timestamp', e.target.checked)}
+                                            />
+                                            {' '}<FiClock style={{verticalAlign: 'middle'}} /> Include Timestamp
+                                        </label>
                                     </div>
                                 </div>
 
@@ -321,10 +533,33 @@ function EmbedBuilder() {
 
                                                     <div className="form-group">
                                                         <label className="form-label">Field Value</label>
+                                                        <div className="formatting-toolbar">
+                                                            <button type="button" className="format-btn" onClick={() => insertFormatting(`field-${index}`, 'bold')} title="Bold">
+                                                                <FiBold />
+                                                            </button>
+                                                            <button type="button" className="format-btn" onClick={() => insertFormatting(`field-${index}`, 'italic')} title="Italic">
+                                                                <FiItalic />
+                                                            </button>
+                                                            <button type="button" className="format-btn" onClick={() => insertFormatting(`field-${index}`, 'code')} title="Code">
+                                                                <FiCode />
+                                                            </button>
+                                                            <button type="button" className="format-btn" onClick={() => insertFormatting(`field-${index}`, 'link')} title="Link">
+                                                                <FiLink />
+                                                            </button>
+                                                            <div className="toolbar-divider"></div>
+                                                            <button type="button" className="format-btn" onClick={() => { setActiveField(`field-${index}`); setShowMemberModal(true); }} title="Mention User">
+                                                                <FiAtSign />
+                                                            </button>
+                                                            <button type="button" className="format-btn" onClick={() => { setActiveField(`field-${index}`); setShowRoleModal(true); }} title="Mention Role">
+                                                                <FiUsers />
+                                                            </button>
+                                                        </div>
                                                         <textarea 
                                                             className="form-textarea"
+                                                            data-field={`field-${index}`}
                                                             value={field.value}
                                                             onChange={(e) => updateField(index, 'value', e.target.value)}
+                                                            placeholder="Supports markdown formatting"
                                                             rows="3"
                                                         />
                                                     </div>
@@ -371,13 +606,20 @@ function EmbedBuilder() {
                                             )}
 
                                             {embed.title && (
-                                                <div className="embed-title">{embed.title}</div>
+                                                <div className="embed-title">
+                                                    {embed.url ? (
+                                                        <a href={embed.url} target="_blank" rel="noopener noreferrer" style={{color: '#64ffda', textDecoration: 'none'}}>
+                                                            {embed.title}
+                                                        </a>
+                                                    ) : embed.title}
+                                                </div>
                                             )}
 
                                             {embed.description && (
-                                                <div className="embed-description">
-                                                    {embed. description}
-                                                </div>
+                                                <div 
+                                                    className="embed-description"
+                                                    dangerouslySetInnerHTML={{__html: formatMarkdownForPreview(embed.description)}}
+                                                />
                                             )}
 
                                             {embed.fields.length > 0 && (
@@ -388,7 +630,10 @@ function EmbedBuilder() {
                                                             className={`embed-field ${field.inline ? 'inline' : ''}`}
                                                         >
                                                             <div className="embed-field-name">{field.name}</div>
-                                                            <div className="embed-field-value">{field.value}</div>
+                                                            <div 
+                                                                className="embed-field-value"
+                                                                dangerouslySetInnerHTML={{__html: formatMarkdownForPreview(field.value)}}
+                                                            />
                                                         </div>
                                                     ))}
                                                 </div>
@@ -412,8 +657,22 @@ function EmbedBuilder() {
                                                 />
                                             )}
 
-                                            {embed.footer && (
-                                                <div className="embed-footer">{embed. footer}</div>
+                                            {(embed.footer.text || embed.timestamp) && (
+                                                <div className="embed-footer">
+                                                    {embed.footer.iconURL && (
+                                                        <img 
+                                                            src={embed.footer.iconURL} 
+                                                            alt="Footer"
+                                                            className="embed-footer-icon"
+                                                            onError={(e) => e.target.style.display = 'none'}
+                                                        />
+                                                    )}
+                                                    <span>
+                                                        {embed.footer.text}
+                                                        {embed.footer.text && embed.timestamp && ' • '}
+                                                        {embed.timestamp && new Date().toLocaleString()}
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -421,6 +680,80 @@ function EmbedBuilder() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Member Selection Modal */}
+                    {showMemberModal && (
+                        <div className="modal-overlay" onClick={() => setShowMemberModal(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h2>Select Member to Mention</h2>
+                                    <button className="modal-close" onClick={() => setShowMemberModal(false)}>×</button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="mention-list">
+                                        {members.length === 0 ? (
+                                            <p className="empty-state">No members available</p>
+                                        ) : (
+                                            members.slice(0, 50).map(member => (
+                                                <div 
+                                                    key={member.id} 
+                                                    className="mention-item"
+                                                    onClick={() => insertMention(activeField, 'user', member.id, member.username)}
+                                                >
+                                                    {member.avatar && (
+                                                        <img 
+                                                            src={member.avatar} 
+                                                            alt={member.username}
+                                                            className="mention-avatar"
+                                                        />
+                                                    )}
+                                                    <div className="mention-info">
+                                                        <span className="mention-name">{member.username}</span>
+                                                        {member.nickname && (
+                                                            <span className="mention-nickname">({member.nickname})</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Role Selection Modal */}
+                    {showRoleModal && (
+                        <div className="modal-overlay" onClick={() => setShowRoleModal(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h2>Select Role to Mention</h2>
+                                    <button className="modal-close" onClick={() => setShowRoleModal(false)}>×</button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="mention-list">
+                                        {roles.length === 0 ? (
+                                            <p className="empty-state">No roles available</p>
+                                        ) : (
+                                            roles.filter(role => role.name !== '@everyone').map(role => (
+                                                <div 
+                                                    key={role.id} 
+                                                    className="mention-item"
+                                                    onClick={() => insertMention(activeField, 'role', role.id, role.name)}
+                                                >
+                                                    <div 
+                                                        className="role-color-dot"
+                                                        style={{backgroundColor: role.color || '#99aab5'}}
+                                                    ></div>
+                                                    <span className="mention-name">{role.name}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </>

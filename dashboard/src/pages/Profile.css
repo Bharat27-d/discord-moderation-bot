@@ -1,7 +1,7 @@
 .profile-page {
     min-height: calc(100vh - 60px);
-    background-color: var(--bg-primary);
-    padding: 40px 0;
+    background-color: #0a0e27;
+    padding: 40px 20px;
 }
 
 .profile-container {
@@ -13,8 +13,10 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--bg-tertiary);
+    padding: 30px;
+    background: #0f1425;
+    border: 1px solid #1a1f3a;
+    border-radius: 8px;
     margin-bottom: 20px;
 }
 
@@ -22,6 +24,9 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
+    border: 3px solid #64ffda;
+    flex-shrink: 0;
+    object-fit: cover;
 }
 
 .profile-info h1 {
@@ -82,20 +87,27 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background-color: var(--bg-tertiary);
+    padding: 20px;
+    background-color: #0f1425;
+    border: 1px solid #1a1f3a;
     border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.preference-item:hover {
+    background-color: #1a1f3a;
+    border-color: #64ffda;
 }
 
 .preference-item h3 {
     font-size: 16px;
     margin-bottom: 5px;
-    color: var(--text-primary);
+    color: #ccd6f6;
 }
 
 .preference-item p {
     font-size: 14px;
-    color: var(--text-secondary);
+    color: #8892b0;
 }
 
 @media (max-width: 768px) {

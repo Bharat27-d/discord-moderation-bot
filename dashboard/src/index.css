@@ -10,10 +10,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-primary);
-  background-image: var(--grid-pattern);
-  background-attachment: fixed;
-  color: var(--text-primary);
+  background: #0a0e27;
+  color: #ccd6f6;
 }
 
 code {
@@ -22,34 +20,18 @@ code {
 }
 
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-tertiary: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --accent: #00d9ff;
-  --accent-hover: #00fff7;
-  --accent-glow: rgba(0, 217, 255, 0.4);
-  --success: #00ff88;
-  --danger: #ff3366;
-  --warning: #ffaa00;
-  --border: #2a2a2a;
-  --shadow: rgba(0, 0, 0, 0.6);
-  --glow-effect: 0 0 20px rgba(0, 217, 255, 0.3);
-  --grid-pattern: repeating-linear-gradient(
-    0deg,
-    rgba(0, 217, 255, 0.03) 0px,
-    transparent 1px,
-    transparent 40px,
-    rgba(0, 217, 255, 0.03) 41px
-  ),
-  repeating-linear-gradient(
-    90deg,
-    rgba(0, 217, 255, 0.03) 0px,
-    transparent 1px,
-    transparent 40px,
-    rgba(0, 217, 255, 0.03) 41px
-  );
+  --bg-primary: #0a0e27;
+  --bg-secondary: #0f1425;
+  --bg-tertiary: #1a1f3a;
+  --text-primary: #ccd6f6;
+  --text-secondary: #8892b0;
+  --accent: #64ffda;
+  --accent-hover: #52cfc1;
+  --success: #64ffda;
+  --danger: #ff5370;
+  --warning: #ffcb6b;
+  --border: #1a1f3a;
+  --shadow: rgba(0, 0, 0, 0.5);
 }
 
 body.light {

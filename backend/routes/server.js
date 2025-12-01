@@ -141,11 +141,10 @@ router.get('/:id/roles', authenticateToken, canManageServer, async (req, res) =>
         }
         
         const roles = rolesData
-            .filter(role => !role.managed && role.name !== '@everyone')
             .map(role => ({
                 id: role.id,
                 name: role.name,
-                color: `#${role.color.toString(16).padStart(6, '0')}`,
+                color: role.color ? `#${role.color.toString(16).padStart(6, '0')}` : null,
                 position: role.position
             }))
             .sort((a, b) => b.position - a.position);
@@ -155,6 +154,35 @@ router.get('/:id/roles', authenticateToken, canManageServer, async (req, res) =>
     } catch (error) {
         console.error('Get roles error:', error);
         res.status(500).json({ error: 'Failed to fetch roles' });
+    }
+});
+
+// Get server members
+router.get('/:id/members', authenticateToken, canManageServer, async (req, res) => {
+    try {
+        const membersData = await discordAPI(`/guilds/${req.guildId}/members?limit=100`);
+        
+        if (!membersData) {
+            return res.status(404).json({ error: 'Members not found' });
+        }
+        
+        const members = membersData
+            .filter(member => !member.user.bot)
+            .map(member => ({
+                id: member.user.id,
+                username: member.user.username,
+                discriminator: member.user.discriminator,
+                avatar: member.user.avatar 
+                    ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png`
+                    : null,
+                nickname: member.nick
+            }));
+        
+        res.json({ members });
+        
+    } catch (error) {
+        console.error('Get members error:', error);
+        res.status(500).json({ error: 'Failed to fetch members' });
     }
 });
 
@@ -280,18 +308,58 @@ router.post('/:id/embed/send', authenticateToken, canManageServer, async (req, r
             return res.status(400).json({ error: 'Missing channelId or embed data' });
         }
         
+        // Build embed object with only defined properties
+        const discordEmbed = {};
+        
+        if (embed.title) discordEmbed.title = embed.title;
+        if (embed.description) discordEmbed.description = embed.description;
+        if (embed.url) discordEmbed.url = embed.url;
+        if (embed.color) discordEmbed.color = parseInt(embed.color.replace('#', ''), 16);
+        
+        if (embed.thumbnail) {
+            discordEmbed.thumbnail = { url: embed.thumbnail };
+        }
+        
+        if (embed.image) {
+            discordEmbed.image = { url: embed.image };
+        }
+        
+        // Handle footer as object (new format) or string (old format)
+        if (embed.footer) {
+            if (typeof embed.footer === 'object') {
+                if (embed.footer.text || embed.footer.iconURL) {
+                    discordEmbed.footer = {};
+                    if (embed.footer.text) discordEmbed.footer.text = embed.footer.text;
+                    if (embed.footer.iconURL) discordEmbed.footer.icon_url = embed.footer.iconURL;
+                }
+            } else if (typeof embed.footer === 'string' && embed.footer) {
+                discordEmbed.footer = { text: embed.footer };
+            }
+        }
+        
+        // Handle author
+        if (embed.author && (embed.author.name || embed.author.iconURL)) {
+            discordEmbed.author = {};
+            if (embed.author.name) discordEmbed.author.name = embed.author.name;
+            if (embed.author.iconURL) discordEmbed.author.icon_url = embed.author.iconURL;
+        }
+        
+        // Handle fields - only include if not empty
+        if (embed.fields && embed.fields.length > 0) {
+            discordEmbed.fields = embed.fields.map(field => ({
+                name: field.name || 'Field',
+                value: field.value || 'Value',
+                inline: field.inline || false
+            }));
+        }
+        
+        // Add timestamp only if requested
+        if (embed.timestamp) {
+            discordEmbed.timestamp = new Date().toISOString();
+        }
+        
         const embedData = {
-            embeds: [{
-                title: embed.title,
-                description: embed.description,
-                color: embed.color ? parseInt(embed.color.replace('#', ''), 16) : null,
-                thumbnail: embed.thumbnail ? { url: embed.thumbnail } : undefined,
-                image: embed.image ? { url: embed.image } : undefined,
-                footer: embed.footer ? { text: embed.footer } : undefined,
-                author: embed.author ? { name: embed.author.name, icon_url: embed.author.iconURL } : undefined,
-                fields: embed.fields || [],
-                timestamp: new Date().toISOString()
-            }]
+            embeds: [discordEmbed]
         };
         
         const result = await discordAPI(`/channels/${channelId}/messages`, 'POST', embedData);

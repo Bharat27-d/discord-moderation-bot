@@ -78,6 +78,16 @@ const guildSettingsSchema = new mongoose.Schema({
     appealLink: {
         type: String,
         default: ''
+    },
+    logChannelId: {
+        type: String,
+        default: null
+    },
+    ticketSystem: {
+        enabled: { type: Boolean, default: false },
+        categoryId: { type: String, default: null },
+        supportRoleId: { type: String, default: null },
+        panelChannelId: { type: String, default: null }
     }
 }, {
     timestamps: true

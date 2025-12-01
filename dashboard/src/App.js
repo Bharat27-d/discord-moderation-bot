@@ -12,6 +12,15 @@ import Settings from './pages/Settings';
 import EmbedBuilder from './pages/EmbedBuilder';
 import Logs from './pages/Logs';
 import Profile from './pages/Profile';
+import Analytics from './pages/Analytics';
+import MessageLogs from './pages/MessageLogs';
+import VoiceLogs from './pages/VoiceLogs';
+import MemberLogs from './pages/MemberLogs';
+import RoleLogs from './pages/RoleLogs';
+import Tickets from './pages/Tickets';
+import ReactionRoles from './pages/ReactionRoles';
+import CustomCommands from './pages/CustomCommands';
+import Announcements from './pages/Announcements';
 import './App.css';
 
 function App() {
@@ -51,6 +60,60 @@ function App() {
             <Route path="/server/:id/logs" element={
               <PrivateRoute>
                 <Logs />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/analytics" element={
+              <PrivateRoute>
+                <Analytics />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/logs/messages" element={
+              <PrivateRoute>
+                <MessageLogs />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/logs/voice" element={
+              <PrivateRoute>
+                <VoiceLogs />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/logs/members" element={
+              <PrivateRoute>
+                <MemberLogs />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/logs/roles" element={
+              <PrivateRoute>
+                <RoleLogs />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/tickets" element={
+              <PrivateRoute>
+                <Tickets />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/reactionroles" element={
+              <PrivateRoute>
+                <ReactionRoles />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/customcommands" element={
+              <PrivateRoute>
+                <CustomCommands />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/server/:id/announcements" element={
+              <PrivateRoute>
+                <Announcements />
               </PrivateRoute>
             } />
             

@@ -1,5 +1,7 @@
 const GuildSettings = require('../models/GuildSettings');
+const CustomCommand = require('../models/CustomCommand');
 const { moderationLog } = require('../utils/logger');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     name: 'messageCreate',
@@ -10,6 +12,11 @@ module.exports = {
         try {
             const settings = await GuildSettings.findOne({ guildId: message.guild.id });
             if (!settings) return;
+
+            // Check for custom commands
+            if (message.content.startsWith('!')) {
+                await handleCustomCommand(message);
+            }
             
             const { automod } = settings;
             
@@ -152,5 +159,61 @@ async function checkWordFilter(message, config, settings) {
         } catch (error) {
             console.error('Error handling word filter:', error);
         }
+    }
+}
+
+async function handleCustomCommand(message) {
+    const args = message.content.slice(1).trim().split(/ +/);
+    const trigger = args[0].toLowerCase();
+
+    try {
+        const command = await CustomCommand.findOne({
+            guildId: message.guild.id,
+            trigger: trigger
+        });
+
+        if (!command) return;
+
+        console.log(`[CUSTOM COMMAND] Executing "${trigger}" in ${message.guild.name}`);
+
+        // Check permissions
+        if (command.allowedRoles && command.allowedRoles.length > 0) {
+            const member = message.member;
+            const hasRole = command.allowedRoles.some(roleId => member.roles.cache.has(roleId));
+            if (!hasRole) return;
+        }
+
+        if (command.allowedChannels && command.allowedChannels.length > 0) {
+            if (!command.allowedChannels.includes(message.channel.id)) return;
+        }
+
+        // Send response
+        if (command.embed.enabled) {
+            const embed = new EmbedBuilder()
+                .setColor(command.embed.color || '#00d9ff')
+                .setTimestamp();
+
+            if (command.embed.title) embed.setTitle(command.embed.title);
+            if (command.embed.description) embed.setDescription(command.embed.description);
+            if (command.embed.thumbnail) embed.setThumbnail(command.embed.thumbnail);
+            if (command.embed.image) embed.setImage(command.embed.image);
+            if (command.embed.footer) embed.setFooter({ text: command.embed.footer });
+
+            await message.channel.send({ embeds: [embed] });
+        } else {
+            await message.channel.send(command.response);
+        }
+
+        // Delete command message if configured
+        if (command.deleteCommand) {
+            await message.delete().catch(() => {});
+        }
+
+        // Increment usage count
+        command.uses += 1;
+        await command.save();
+
+    } catch (error) {
+        console.error('[CUSTOM COMMAND] Error:', error);
     }
 }
