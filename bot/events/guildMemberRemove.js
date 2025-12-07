@@ -3,9 +3,14 @@ const GuildSettings = require('../models/GuildSettings');
 
 module.exports = {
   name: 'guildMemberRemove',
-  async execute(member) {
+  async execute(member, client) {
     try {
       console.log(`[MEMBER LEAVE] ${member.user.tag} left ${member.guild.name}`);
+      
+      // Track member leave in analytics
+      if (client && client.analyticsCollector) {
+        client.analyticsCollector.trackMemberChange(member, 'leave');
+      }
 
       // Get guild settings
       const settings = await GuildSettings.findOne({ guildId: member.guild.id });

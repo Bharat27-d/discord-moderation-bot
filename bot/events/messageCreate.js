@@ -9,6 +9,11 @@ module.exports = {
         if (message.author.bot || !message.guild) return;
         if (!client.mongoConnected) return;
         
+        // Track message in analytics
+        if (client.analyticsCollector) {
+            client.analyticsCollector.trackMessage(message);
+        }
+        
         try {
             const settings = await GuildSettings.findOne({ guildId: message.guild.id });
             if (!settings) return;

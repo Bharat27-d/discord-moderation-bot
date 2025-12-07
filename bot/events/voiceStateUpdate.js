@@ -6,12 +6,17 @@ const voiceSessions = new Map();
 
 module.exports = {
   name: 'voiceStateUpdate',
-  async execute(oldState, newState) {
+  async execute(oldState, newState, client) {
     try {
       if (!newState.guild) return;
 
       const member = newState.member;
       if (!member || member.user.bot) return;
+      
+      // Track voice state in analytics
+      if (client && client.analyticsCollector) {
+        client.analyticsCollector.trackVoiceStateUpdate(oldState, newState);
+      }
 
       console.log(`[VOICE STATE] Voice state changed for ${member.user.tag} in ${newState.guild.name}`);
 

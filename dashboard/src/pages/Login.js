@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 function Login() {
-    const navigate = useNavigate();
 
     const handleLogin = () => {
         const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';

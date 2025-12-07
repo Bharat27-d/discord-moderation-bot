@@ -33,19 +33,15 @@ function Logs() {
         'Auto-Word Filter'
     ];
 
-    useEffect(() => {
-        fetchLogs();
-    }, [id, currentPage, filters]);
-
-    const fetchLogs = async () => {
+    const fetchLogs = React.useCallback(async () => {
         try {
             const params = new URLSearchParams({
                 page: currentPage,
                 limit: 25,
-                ... filters
+                ...filters
             });
 
-            const response = await api.get(`/api/server/${id}/logs? ${params}`);
+            const response = await api.get(`/api/server/${id}/logs?${params}`);
             setLogs(response.data.logs);
             setTotalPages(response.data.totalPages);
         } catch (error) {
@@ -54,7 +50,11 @@ function Logs() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, currentPage, filters]);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
 
     const handleFilterChange = (field, value) => {
         setFilters(prev => ({
@@ -75,7 +75,7 @@ function Logs() {
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date. toLocaleString();
+        return date.toLocaleString();
     };
 
     if (loading) {
@@ -116,10 +116,10 @@ function Logs() {
                                         <select 
                                             className="form-select"
                                             value={filters.action}
-                                            onChange={(e) => handleFilterChange('action', e.target. value)}
+                                            onChange={(e) => handleFilterChange('action', e.target.value)}
                                         >
                                             <option value="">All Actions</option>
-                                            {actionTypes. map(action => (
+                                            {actionTypes.map(action => (
                                                 <option key={action} value={action}>
                                                     {action}
                                                 </option>
@@ -143,7 +143,7 @@ function Logs() {
                                         <input 
                                             type="text"
                                             className="form-input"
-                                            value={filters. moderatorId}
+                                            value={filters.moderatorId}
                                             onChange={(e) => handleFilterChange('moderatorId', e.target.value)}
                                             placeholder="Filter by moderator ID"
                                         />
@@ -184,15 +184,15 @@ function Logs() {
                                                     <tr key={log._id}>
                                                         <td className="case-id">#{log.caseId}</td>
                                                         <td>
-                                                            <span className={`action-badge action-${log.action. toLowerCase(). replace(/\s+/g, '-')}`}>
+                                                            <span className={`action-badge action-${log.action.toLowerCase().replace(/\s+/g, '-')}`}>
                                                                 {log.action}
                                                             </span>
                                                         </td>
-                                                        <td className="user-id">{log. userId}</td>
+                                                        <td className="user-id">{log.userId}</td>
                                                         <td className="moderator-id">{log.moderatorId}</td>
                                                         <td className="reason-cell">{log.reason}</td>
                                                         <td>{log.duration || '-'}</td>
-                                                        <td className="date-cell">{formatDate(log. timestamp)}</td>
+                                                        <td className="date-cell">{formatDate(log.timestamp)}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -203,7 +203,7 @@ function Logs() {
                                         <div className="pagination">
                                             <button 
                                                 className="btn btn-secondary"
-                                                onClick={() => setCurrentPage(prev => Math. max(1, prev - 1))}
+                                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                                 disabled={currentPage === 1}
                                             >
                                                 <FiChevronLeft /> Previous

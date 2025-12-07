@@ -16,28 +16,28 @@ function Settings() {
     const [settings, setSettings] = useState(null);
     const [activeTab, setActiveTab] = useState('general');
 
-    useEffect(() => {
-        fetchData();
-    }, [id]);
-
-    const fetchData = async () => {
+    const fetchData = React.useCallback(async () => {
         try {
-            const [channelsRes, rolesRes, settingsRes] = await Promise. all([
+            const [channelsRes, rolesRes, settingsRes] = await Promise.all([
                 api.get(`/api/server/${id}/channels`),
                 api.get(`/api/server/${id}/roles`),
                 api.get(`/api/server/${id}/settings`)
             ]);
 
-            setChannels(channelsRes.data. channels);
+            setChannels(channelsRes.data.channels);
             setRoles(rolesRes.data.roles);
-            setSettings(settingsRes.data. settings);
+            setSettings(settingsRes.data.settings);
         } catch (error) {
             console.error('Failed to fetch data:', error);
             toast.error('Failed to load settings');
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -54,7 +54,7 @@ function Settings() {
 
     const updateSetting = (path, value) => {
         setSettings(prev => {
-            const newSettings = { ... prev };
+            const newSettings = {...prev};
             const keys = path.split('.');
             let current = newSettings;
             
@@ -71,7 +71,7 @@ function Settings() {
     const addWordToFilter = () => {
         const word = prompt('Enter word to filter:');
         if (word) {
-            updateSetting('automod.wordFilter. words', [
+            updateSetting('automod.wordFilter.words', [
                 ...settings.automod.wordFilter.words,
                 word
             ]);
@@ -79,7 +79,7 @@ function Settings() {
     };
 
     const removeWordFromFilter = (index) => {
-        const words = [... settings.automod.wordFilter. words];
+        const words = [...settings.automod.wordFilter.words];
         words.splice(index, 1);
         updateSetting('automod.wordFilter.words', words);
     };
@@ -88,14 +88,14 @@ function Settings() {
         const domain = prompt('Enter domain to whitelist (e.g., youtube.com):');
         if (domain) {
             updateSetting('automod.antiLink.whitelist', [
-                ... settings.automod.antiLink. whitelist,
+                ...settings.automod.antiLink.whitelist,
                 domain
             ]);
         }
     };
 
     const removeWhitelistedDomain = (index) => {
-        const whitelist = [...settings.automod. antiLink.whitelist];
+        const whitelist = [...settings.automod.antiLink.whitelist];
         whitelist.splice(index, 1);
         updateSetting('automod.antiLink.whitelist', whitelist);
     };
@@ -185,7 +185,7 @@ function Settings() {
                                     <label className="form-label">Moderation Log Channel</label>
                                     <select 
                                         className="form-select"
-                                        value={settings. modLog || ''}
+                                        value={settings.modLog || ''}
                                         onChange={(e) => updateSetting('modLog', e.target.value)}
                                     >
                                         <option value="">None</option>
@@ -202,11 +202,11 @@ function Settings() {
                                     <select 
                                         className="form-select"
                                         value={settings.punishmentLog || ''}
-                                        onChange={(e) => updateSetting('punishmentLog', e. target.value)}
+                                        onChange={(e) => updateSetting('punishmentLog', e.target.value)}
                                     >
                                         <option value="">None</option>
                                         {channels.map(channel => (
-                                            <option key={channel.id} value={channel.id}>
+                                            <option key={channel.id} value={channel.name}>
                                                 #{channel.name}
                                             </option>
                                         ))}
@@ -222,7 +222,7 @@ function Settings() {
                                     >
                                         <option value="">None</option>
                                         {roles.map(role => (
-                                            <option key={role. id} value={role.id}>
+                                            <option key={role.id} value={role.id}>
                                                 {role.name}
                                             </option>
                                         ))}
@@ -250,7 +250,7 @@ function Settings() {
                                     <select 
                                         className="form-select"
                                         value={settings.leaveChannel || ''}
-                                        onChange={(e) => updateSetting('leaveChannel', e.target. value)}
+                                        onChange={(e) => updateSetting('leaveChannel', e.target.value)}
                                     >
                                         <option value="">None</option>
                                         {channels.map(channel => (
@@ -275,7 +275,7 @@ function Settings() {
                                         <label className="toggle-switch">
                                             <input 
                                                 type="checkbox"
-                                                checked={settings. automod.antiSpam. enabled}
+                                                checked={settings.automod.antiSpam.enabled}
                                                 onChange={(e) => updateSetting('automod.antiSpam.enabled', e.target.checked)}
                                             />
                                             <span className="toggle-slider"></span>
@@ -320,18 +320,18 @@ function Settings() {
                                         <label className="toggle-switch">
                                             <input 
                                                 type="checkbox"
-                                                checked={settings.automod. antiLink.enabled}
-                                                onChange={(e) => updateSetting('automod.antiLink. enabled', e.target.checked)}
+                                                checked={settings.automod.antiLink.enabled}
+                                                onChange={(e) => updateSetting('automod.antiLink.enabled', e.target.checked)}
                                             />
                                             <span className="toggle-slider"></span>
                                         </label>
                                     </div>
 
-                                    {settings. automod.antiLink.enabled && (
+                                    {settings.automod.antiLink.enabled && (
                                         <div className="setting-details">
                                             <label className="form-label">Whitelisted Domains</label>
                                             <div className="list-items">
-                                                {settings. automod.antiLink.whitelist.map((domain, index) => (
+                                                {settings.automod.antiLink.whitelist.map((domain, index) => (
                                                     <div key={index} className="list-item">
                                                         <span>{domain}</span>
                                                         <button 
@@ -362,7 +362,7 @@ function Settings() {
                                         <label className="toggle-switch">
                                             <input 
                                                 type="checkbox"
-                                                checked={settings.automod. antiMassPing.enabled}
+                                                checked={settings.automod.antiMassPing.enabled}
                                                 onChange={(e) => updateSetting('automod.antiMassPing.enabled', e.target.checked)}
                                             />
                                             <span className="toggle-slider"></span>
@@ -376,7 +376,7 @@ function Settings() {
                                                 <input 
                                                     type="number"
                                                     className="form-input"
-                                                    value={settings. automod.antiMassPing.maxPings}
+                                                    value={settings.automod.antiMassPing.maxPings}
                                                     onChange={(e) => updateSetting('automod.antiMassPing.maxPings', parseInt(e.target.value))}
                                                     min="1"
                                                     max="20"
@@ -513,8 +513,8 @@ function Settings() {
                                                 <input 
                                                     type="text"
                                                     className="form-input"
-                                                    value={settings. welcomeMessage.image}
-                                                    onChange={(e) => updateSetting('welcomeMessage. image', e.target.value)}
+                                                    value={settings.welcomeMessage.image}
+                                                    onChange={(e) => updateSetting('welcomeMessage.image', e.target.value)}
                                                     placeholder="https://example.com/image.png"
                                                 />
                                             </div>
@@ -541,7 +541,7 @@ function Settings() {
                                                 type="checkbox"
                                                 className="form-checkbox"
                                                 checked={settings.leaveMessage.enabled}
-                                                onChange={(e) => updateSetting('leaveMessage.enabled', e.target. checked)}
+                                                onChange={(e) => updateSetting('leaveMessage.enabled', e.target.checked)}
                                             />
                                             {' '}Enable Leave Messages
                                         </label>
@@ -594,7 +594,7 @@ function Settings() {
                                     <input 
                                         type="number"
                                         className="form-input"
-                                        value={settings.punishments. warnThreshold}
+                                        value={settings.punishments.warnThreshold}
                                         onChange={(e) => updateSetting('punishments.warnThreshold', parseInt(e.target.value))}
                                         min="1"
                                         max="20"

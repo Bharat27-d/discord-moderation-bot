@@ -45,6 +45,12 @@ async function connectMongoDB() {
         const { startScheduler } = require('./utils/scheduler');
         startScheduler(client);
         
+        // Initialize analytics collector
+        const AnalyticsCollector = require('./utils/analyticsCollector');
+        const analyticsCollector = new AnalyticsCollector(client);
+        await analyticsCollector.initialize();
+        client.analyticsCollector = analyticsCollector;
+        
     } catch (err) {
         console.error('❌ MongoDB connection error:', err.message);
         console.log('⚠️ Retrying MongoDB connection in 5 seconds...');

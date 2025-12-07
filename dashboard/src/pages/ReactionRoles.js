@@ -10,11 +10,7 @@ function ReactionRoles() {
   const [reactionRoles, setReactionRoles] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchReactionRoles();
-  }, [serverId]);
-
-  const fetchReactionRoles = async () => {
+  const fetchReactionRoles = React.useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/api/features/reactionroles/${serverId}`);
@@ -26,7 +22,11 @@ function ReactionRoles() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId]);
+
+  useEffect(() => {
+    fetchReactionRoles();
+  }, [fetchReactionRoles]);
 
   const getModeColor = (mode) => {
     const colors = {

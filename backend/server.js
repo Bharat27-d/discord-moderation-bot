@@ -28,6 +28,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/api/servers', require('./routes/servers'));
 app.use('/api/server', require('./routes/server'));
 app.use('/api/features', require('./routes/features'));
+app.use('/api/analytics', require('./routes/advancedAnalytics'));
 
 // Health check
 app.get('/health', (req, res) => {

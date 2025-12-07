@@ -12,11 +12,7 @@ function Announcements() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, [serverId, filter]);
-
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -32,7 +28,11 @@ function Announcements() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId, filter]);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
 
   const handleCancel = async (announcementId) => {
     if (!window.confirm('Are you sure you want to cancel this announcement?')) return;

@@ -13,6 +13,11 @@ module.exports = {
                 return;
             }
             
+            // Track member join in analytics
+            if (client.analyticsCollector) {
+                client.analyticsCollector.trackMemberChange(member, 'join');
+            }
+            
             // Log member join
             const accountCreated = member.user.createdAt;
             const accountAge = Math.floor((Date.now() - accountCreated.getTime()) / (1000 * 60 * 60 * 24)); // Days

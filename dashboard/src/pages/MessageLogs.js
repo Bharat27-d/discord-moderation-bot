@@ -13,11 +13,7 @@ function MessageLogs() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [serverId, filter, page]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = React.useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -36,7 +32,11 @@ function MessageLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId, filter, page]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   return (
     <div className="page-layout">

@@ -13,11 +13,7 @@ function RoleLogs() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [serverId, filter, page]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -36,7 +32,11 @@ function RoleLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId, filter, page]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   const getActionIcon = (action) => {
     return action === 'added' ? '➕' : '➖';

@@ -14,11 +14,7 @@ function Tickets() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  useEffect(() => {
-    fetchTickets();
-  }, [serverId, filter]);
-
-  const fetchTickets = async () => {
+  const fetchTickets = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -34,7 +30,11 @@ function Tickets() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId, filter]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   const viewTranscript = (ticket) => {
     setSelectedTicket(ticket);

@@ -18,11 +18,7 @@ function CustomCommands() {
     embedColor: '#00d9ff',
   });
 
-  useEffect(() => {
-    fetchCommands();
-  }, [serverId]);
-
-  const fetchCommands = async () => {
+  const fetchCommands = React.useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/api/features/customcommands/${serverId}`);
@@ -34,7 +30,11 @@ function CustomCommands() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverId]);
+
+  useEffect(() => {
+    fetchCommands();
+  }, [fetchCommands]);
 
   const handleCreate = async (e) => {
     e.preventDefault();

@@ -39,13 +39,7 @@ function EmbedBuilder() {
     
     const [selectedChannel, setSelectedChannel] = useState('');
 
-    useEffect(() => {
-        fetchChannels();
-        fetchMembers();
-        fetchRoles();
-    }, [id]);
-
-    const fetchChannels = async () => {
+    const fetchChannels = React.useCallback(async () => {
         try {
             const response = await api.get(`/api/server/${id}/channels`);
             setChannels(response.data.channels);
@@ -55,25 +49,31 @@ function EmbedBuilder() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    const fetchMembers = async () => {
+    const fetchMembers = React.useCallback(async () => {
         try {
             const response = await api.get(`/api/server/${id}/members`);
             setMembers(response.data.members || []);
         } catch (error) {
             console.error('Failed to fetch members:', error);
         }
-    };
+    }, [id]);
 
-    const fetchRoles = async () => {
+    const fetchRoles = React.useCallback(async () => {
         try {
             const response = await api.get(`/api/server/${id}/roles`);
             setRoles(response.data.roles || []);
         } catch (error) {
             console.error('Failed to fetch roles:', error);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchChannels();
+        fetchMembers();
+        fetchRoles();
+    }, [fetchChannels, fetchMembers, fetchRoles]);
 
     const updateEmbed = (field, value) => {
         setEmbed(prev => ({
@@ -444,7 +444,7 @@ function EmbedBuilder() {
                                             className="form-input"
                                             value={embed.thumbnail}
                                             onChange={(e) => updateEmbed('thumbnail', e.target.value)}
-                                            placeholder="https://example. com/thumbnail.png"
+                                            placeholder="https://example.com/thumbnail.png"
                                         />
                                     </div>
 
@@ -454,8 +454,8 @@ function EmbedBuilder() {
                                             type="text"
                                             className="form-input"
                                             value={embed.image}
-                                            onChange={(e) => updateEmbed('image', e.target. value)}
-                                            placeholder="https://example.com/image. png"
+                                            onChange={(e) => updateEmbed('image', e.target.value)}
+                                            placeholder="https://example.com/image.png"
                                         />
                                     </div>
 
@@ -509,7 +509,7 @@ function EmbedBuilder() {
                                         <p className="empty-state">No fields added yet</p>
                                     ) : (
                                         <div className="fields-list">
-                                            {embed. fields.map((field, index) => (
+                                            {embed.fields.map((field, index) => (
                                                 <div key={index} className="field-item">
                                                     <div className="field-item-header">
                                                         <span>Field {index + 1}</span>
@@ -644,7 +644,7 @@ function EmbedBuilder() {
                                                     src={embed.image} 
                                                     alt="Embed"
                                                     className="embed-image"
-                                                    onError={(e) => e. target.style.display = 'none'}
+                                                    onError={(e) => e.target.style.display = 'none'}
                                                 />
                                             )}
 
