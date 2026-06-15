@@ -1,4 +1,4 @@
-const MessageLog = require('../models/MessageLog');
+
 const GuildSettings = require('../models/GuildSettings');
 
 module.exports = {
@@ -20,40 +20,10 @@ module.exports = {
       const settings = await GuildSettings.findOne({ guildId: message.guild.id });
       if (!settings) return;
 
-      // Save to database
-      const logEntry = new MessageLog({
-        guildId: message.guild.id,
-        messageId: message.id,
-        channelId: message.channel.id,
-        channelName: message.channel.name,
-        authorId: message.author?.id || 'Unknown',
-        authorTag: message.author?.tag || 'Unknown',
-        authorAvatar: message.author?.displayAvatarURL({ dynamic: true }),
-        content: message.content || '',
-        attachments: message.attachments.map(att => ({
-          id: att.id,
-          name: att.name,
-          url: att.url,
-          proxyUrl: att.proxyURL,
-          size: att.size,
-          contentType: att.contentType
-        })),
-        embeds: message.embeds.map(embed => ({
-          title: embed.title,
-          description: embed.description,
-          url: embed.url,
-          color: embed.color
-        })),
-        action: 'deleted',
-        timestamp: new Date()
-      });
-
-      await logEntry.save();
-      console.log(`[MESSAGE DELETE] Logged to database: ${message.id}`);
-
       // Send to log channel if configured
-      if (settings.logChannelId) {
-        const logChannel = message.guild.channels.cache.get(settings.logChannelId);
+      const targetChannelId = settings.logging?.messageLogsChannel || settings.logChannelId;
+      if (targetChannelId) {
+        const logChannel = message.guild.channels.cache.get(targetChannelId);
         if (logChannel) {
           const { EmbedBuilder } = require('discord.js');
           const embed = new EmbedBuilder()

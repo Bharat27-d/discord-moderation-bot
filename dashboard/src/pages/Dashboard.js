@@ -1,52 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import api from '../services/api';
-import toast from 'react-hot-toast';
-import { FiUsers, FiShield, FiAlertTriangle, FiActivity } from 'react-icons/fi';
+import { FiSettings, FiLayout, FiMessageSquare, FiCommand, FiShield } from 'react-icons/fi';
 import './Dashboard.css';
 
 function Dashboard() {
     const { id } = useParams();
     const [server, setServer] = useState(null);
-    const [stats, setStats] = useState(null);
-    const [recentLogs, setRecentLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchDashboardData = useCallback(async () => {
-        try {
-            const [serverRes, logsRes] = await Promise.all([
-                api.get(`/api/server/${id}`),
-                api.get(`/api/server/${id}/logs?limit=5`)
-            ]);
-
-            setServer(serverRes.data);
-            setRecentLogs(logsRes.data.logs);
-
-            // Calculate stats from logs
-            const allLogs = await api.get(`/api/server/${id}/logs?limit=1000`);
-            const logs = allLogs.data.logs;
-            
-            setStats({
-                totalCases: logs.length,
-                warns: logs.filter(l => l.action === 'Warn').length,
-                kicks: logs.filter(l => l.action === 'Kick').length,
-                bans: logs.filter(l => l.action === 'Ban').length,
-                automod: logs.filter(l => l.action.startsWith('Auto-')).length
-            });
-
-        } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
-            toast.error('Failed to load dashboard data');
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
-
     useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
+        const fetchServer = async () => {
+            try {
+                const res = await api.get(`/api/server/${id}`);
+                setServer(res.data);
+            } catch (error) {
+                console.error('Failed to fetch server:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchServer();
+    }, [id]);
 
     if (loading) {
         return (
@@ -54,7 +31,7 @@ function Dashboard() {
                 <Navbar />
                 <div className="page-layout">
                     <Sidebar />
-                    <div className="loading">Loading dashboard...</div>
+                    <div className="flex items-center justify-center w-full h-full text-gray-400">Loading your workspace...</div>
                 </div>
             </>
         );
@@ -66,126 +43,72 @@ function Dashboard() {
                 <Navbar />
                 <div className="page-layout">
                     <Sidebar />
-                    <div className="page-content">
-                        <div className="container">
-                            <div className="error">
-                                <h2>Server not found</h2>
-                                <p>The bot may not be in this server or you don't have permission to manage it.</p>
-                                <p style={{ marginTop: '20px' }}>
-                                    <strong>To invite the bot to your server:</strong><br/>
-                                    Use the invite link with proper permissions.
-                                </p>
-                            </div>
-                        </div>
+                    <div className="flex flex-col items-center justify-center w-full h-full text-center p-8">
+                        <div className="text-[#ed4245] mb-4"><FiShield size={48} /></div>
+                        <h2 className="text-2xl font-bold text-white mb-2">Server Not Found</h2>
+                        <p className="text-gray-400 max-w-md">The bot may not be in this server or you don't have permission to manage it. Please invite the bot first.</p>
                     </div>
                 </div>
             </>
         );
     }
 
+    const quickLinks = [
+        { title: 'Server Settings', icon: <FiSettings size={24} />, desc: 'Configure channels, logging, and auto-mod.', path: `/server/${id}/settings`, color: 'bg-blue-500/10 text-blue-500' },
+        { title: 'Embed Builder', icon: <FiLayout size={24} />, desc: 'Create and send beautiful custom messages.', path: `/server/${id}/embed-builder`, color: 'bg-purple-500/10 text-purple-500' },
+        { title: 'Reaction Roles', icon: <FiMessageSquare size={24} />, desc: 'Set up self-assignable roles for your members.', path: `/server/${id}/reactionroles`, color: 'bg-green-500/10 text-green-500' },
+        { title: 'Custom Commands', icon: <FiCommand size={24} />, desc: 'Create your own personalized text commands.', path: `/server/${id}/customcommands`, color: 'bg-yellow-500/10 text-yellow-500' }
+    ];
+
     return (
         <>
             <Navbar />
             <div className="page-layout">
                 <Sidebar />
-                <div className="page-content">
-                    <div className="container">
-                        <div className="dashboard-header">
-                            <div className="dashboard-server-info">
-                                {server.icon && (
-                                    <img 
-                                        src={server.icon} 
-                                        alt={server.name}
-                                        className="dashboard-server-icon"
-                                    />
+                <div className="page-content bg-[#0f0f13]">
+                    <div className="max-w-6xl mx-auto p-8">
+                        {/* Welcome Banner */}
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2b2d31] to-[#1e1f22] border border-[#3f4147] p-10 mb-8">
+                            <div className="relative z-10 flex items-center space-x-6">
+                                {server.icon ? (
+                                    <img src={server.icon} alt={server.name} className="w-24 h-24 rounded-2xl shadow-lg border border-[#3f4147]" />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-2xl bg-[#3f4147] flex items-center justify-center text-3xl font-bold text-white shadow-lg">
+                                        {server.name.charAt(0)}
+                                    </div>
                                 )}
                                 <div>
-                                    <h1>{server.name}</h1>
-                                    <p><FiUsers /> {server.memberCount || 0} members</p>
+                                    <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Welcome to {server.name}</h1>
+                                    <p className="text-gray-400 text-lg">Manage your server, configure settings, and build a better community from your central dashboard.</p>
                                 </div>
                             </div>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#5865f2] opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                         </div>
 
-                        {stats && (
-                            <div className="stats-grid">
-                                <div className="stat-card">
-                                    <div className="stat-icon" style={{ backgroundColor: '#5865f2' }}>
-                                        <FiShield size={24} />
+                        {/* Quick Actions Grid */}
+                        <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {quickLinks.map((link, i) => (
+                                <Link to={link.path} key={i} className="group block p-6 rounded-xl bg-[#1e1f22] border border-[#2b2d31] hover:border-[#5865f2] transition-all duration-300">
+                                    <div className="flex items-start space-x-4">
+                                        <div className={`p-3 rounded-lg ${link.color} transition-transform group-hover:scale-110 duration-300`}>
+                                            {link.icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-1 group-hover:text-[#5865f2] transition-colors">{link.title}</h3>
+                                            <p className="text-gray-400 text-sm leading-relaxed">{link.desc}</p>
+                                        </div>
                                     </div>
-                                    <div className="stat-info">
-                                        <h3>{stats.totalCases}</h3>
-                                        <p>Total Cases</p>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon" style={{ backgroundColor: '#faa61a' }}>
-                                        <FiAlertTriangle size={24} />
-                                    </div>
-                                    <div className="stat-info">
-                                        <h3>{stats.warns}</h3>
-                                        <p>Warnings</p>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon" style={{ backgroundColor: '#ed4245' }}>
-                                        <FiActivity size={24} />
-                                    </div>
-                                    <div className="stat-info">
-                                        <h3>{stats.kicks + stats.bans}</h3>
-                                        <p>Kicks & Bans</p>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon" style={{ backgroundColor: '#3ba55d' }}>
-                                        <FiShield size={24} />
-                                    </div>
-                                    <div className="stat-info">
-                                        <h3>{stats.automod}</h3>
-                                        <p>Auto-Mod Actions</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="card">
-                            <h2>Recent Moderation Actions</h2>
-                            {recentLogs.length === 0 ? (
-                                <p className="empty-state">No moderation actions yet</p>
-                            ) : (
-                                <div className="logs-table">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Case</th>
-                                                <th>Action</th>
-                                                <th>User</th>
-                                                <th>Moderator</th>
-                                                <th>Reason</th>
-                                                <th>Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {recentLogs.map(log => (
-                                                <tr key={log._id}>
-                                                    <td>#{log.caseId}</td>
-                                                    <td>
-                                                        <span className={`action-badge action-${log.action.toLowerCase().replace(/\s+/g, '-')}`}>
-                                                            {log.action}
-                                                        </span>
-                                                    </td>
-                                                    <td>{log.userId}</td>
-                                                    <td>{log.moderatorId}</td>
-                                                    <td className="reason-cell">{log.reason}</td>
-                                                    <td>{new Date(log.timestamp).toLocaleDateString()}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                                </Link>
+                            ))}
+                        </div>
+                        
+                        {/* Status Footer */}
+                        <div className="mt-12 text-center p-6 rounded-xl border border-dashed border-[#2b2d31]">
+                            <p className="text-gray-500 text-sm flex items-center justify-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                Nexon Bot is active and protecting your server.
+                            </p>
                         </div>
                     </div>
                 </div>

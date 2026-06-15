@@ -1,4 +1,4 @@
-const VoiceLog = require('../models/VoiceLog');
+
 const GuildSettings = require('../models/GuildSettings');
 
 // Track voice session start times
@@ -100,29 +100,13 @@ module.exports = {
 
       if (!action) return;
 
-      // Save to database
-      const logEntry = new VoiceLog(logData);
-      await logEntry.save();
-      console.log(`[VOICE STATE] Logged action "${action}" to database`);
-
       // Send to log channel if configured
-      if (settings.logChannelId) {
-        const logChannel = newState.guild.channels.cache.get(settings.logChannelId);
+      const targetChannelId = settings.logging?.voiceLogsChannel || settings.logChannelId;
+      if (targetChannelId) {
+        const logChannel = newState.guild.channels.cache.get(targetChannelId);
         if (logChannel) {
           const { EmbedBuilder } = require('discord.js');
           
-          const actionEmojis = {
-            join: '🔊',
-            leave: '🔇',
-            move: '↔️',
-            mute: '🔇',
-            unmute: '🔊',
-            deafen: '🔇',
-            undeafen: '🔊',
-            stream_start: '📹',
-            stream_stop: '📹'
-          };
-
           const actionColors = {
             join: '#00ff00',
             leave: '#ff0000',
@@ -136,26 +120,41 @@ module.exports = {
           };
 
           const embed = new EmbedBuilder()
-            .setTitle(`${actionEmojis[action]} Voice ${action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ')}`)
+            .setAuthor({ name: member.user.username, iconURL: member.user.displayAvatarURL({ dynamic: true }) })
             .setColor(actionColors[action])
-            .setDescription(`**User:** ${member.user.tag}`)
             .setTimestamp()
-            .setFooter({ text: `User ID: ${member.id}` })
             .setThumbnail(member.user.displayAvatarURL({ dynamic: true }));
 
-          if (logData.oldChannelName) {
-            embed.addFields({ name: 'From', value: logData.oldChannelName, inline: true });
+          let desc = '';
+          if (action === 'leave') {
+            desc = `📤 **Voice Channel Left**\n<@${member.id}> left the voice channel ${logData.oldChannelName}`;
+          } else if (action === 'join') {
+            desc = `📥 **Voice Channel Joined**\n<@${member.id}> joined the voice channel ${logData.newChannelName}`;
+          } else if (action === 'move') {
+            desc = `↔️ **Voice Channel Moved**\n<@${member.id}> moved from ${logData.oldChannelName} to ${logData.newChannelName}`;
+          } else if (action === 'mute') {
+            desc = `🔇 **Server Muted**\n<@${member.id}> was server muted`;
+          } else if (action === 'unmute') {
+            desc = `🔊 **Server Unmuted**\n<@${member.id}> was server unmuted`;
+          } else if (action === 'deafen') {
+            desc = `🔇 **Server Deafened**\n<@${member.id}> was server deafened`;
+          } else if (action === 'undeafen') {
+            desc = `🔊 **Server Undeafened**\n<@${member.id}> was server undeafened`;
+          } else if (action === 'stream_start') {
+            desc = `📹 **Stream Started**\n<@${member.id}> started streaming`;
+          } else if (action === 'stream_stop') {
+            desc = `📹 **Stream Stopped**\n<@${member.id}> stopped streaming`;
           }
-          if (logData.newChannelName) {
-            embed.addFields({ name: action === 'move' ? 'To' : 'Channel', value: logData.newChannelName, inline: true });
-          }
-          if (logData.duration) {
+          
+          if (logData.duration && action === 'leave') {
             const hours = Math.floor(logData.duration / 3600);
             const minutes = Math.floor((logData.duration % 3600) / 60);
             const seconds = logData.duration % 60;
-            const durationStr = `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
-            embed.addFields({ name: 'Duration', value: durationStr, inline: true });
+            const durationStr = `${hours > 0 ? hours + 'h ' : ''}${minutes > 0 ? minutes + 'm ' : ''}${seconds}s`;
+            desc += `\n**Duration:** ${durationStr}`;
           }
+
+          embed.setDescription(desc);
 
           await logChannel.send({ embeds: [embed] }).catch(err => {
             console.error('[VOICE STATE] Failed to send log:', err);

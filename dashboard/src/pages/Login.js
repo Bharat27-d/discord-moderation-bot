@@ -29,12 +29,12 @@ function Login() {
                             <p>Ban, kick, mute, warn, and timeout members</p>
                         </div>
                         <div className="feature">
-                            <span className="feature-icon">📊</span>
+                            <span className="feature-icon"></span>
                             <h3>Detailed Logs</h3>
                             <p>Track all moderation actions with case IDs</p>
                         </div>
                         <div className="feature">
-                            <span className="feature-icon">⚙️</span>
+                            <span className="feature-icon"></span>
                             <h3>Customizable Settings</h3>
                             <p>Configure auto-moderation and preferences</p>
                         </div>

@@ -44,7 +44,7 @@ function MessageLogs() {
       <div className="page-content">
         <div className="logs-container">
           <div className="logs-header">
-        <h1>📝 Message Logs</h1>
+        <h1>Message Logs</h1>
         <div className="filters">
           <select 
             value={filter.action} 
@@ -88,7 +88,7 @@ function MessageLogs() {
                     </div>
                   </div>
                   <div className={`log-badge ${log.action}`}>
-                    {log.action === 'deleted' ? '🗑️ Deleted' : '✏️ Edited'}
+                    {log.action === 'deleted' ? 'Deleted' : 'Edited'}
                   </div>
                 </div>
 
@@ -121,7 +121,7 @@ function MessageLogs() {
                     <div className="content-label">Attachments:</div>
                     {log.attachments.map((att, i) => (
                       <a key={i} href={att.url} target="_blank" rel="noopener noreferrer" className="attachment-link">
-                        📎 {att.name}
+                        {att.name}
                       </a>
                     ))}
                   </div>

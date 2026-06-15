@@ -1,6 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
 const GuildSettings = require('../models/GuildSettings');
-const MemberLog = require('../models/MemberLog');
 
 module.exports = {
     name: 'guildMemberAdd',
@@ -17,40 +16,21 @@ module.exports = {
             if (client.analyticsCollector) {
                 client.analyticsCollector.trackMemberChange(member, 'join');
             }
-            
-            // Log member join
-            const accountCreated = member.user.createdAt;
-            const accountAge = Math.floor((Date.now() - accountCreated.getTime()) / (1000 * 60 * 60 * 24)); // Days
-
-            const memberLogEntry = new MemberLog({
-                guildId: member.guild.id,
-                userId: member.id,
-                userTag: member.user.tag,
-                userAvatar: member.user.displayAvatarURL({ dynamic: true }),
-                action: 'join',
-                accountAge: accountAge,
-                accountCreated: accountCreated,
-                memberCount: member.guild.memberCount,
-                timestamp: new Date()
-            });
-
-            await memberLogEntry.save();
-            console.log('[MEMBER JOIN] Logged to database');
-            
             const settings = await GuildSettings.findOne({ guildId: member.guild.id });
-            console.log('📊 Settings found:', settings ? 'Yes' : 'No');
+            console.log('Settings found:', settings ? 'Yes' : 'No');
             
             if (!settings) {
-                console.log('❌ No settings found for guild:', member.guild.id);
+                console.log('No settings found for guild:', member.guild.id);
                 return;
             }
 
             // Log to log channel if configured
-            if (settings.logChannelId) {
-                const logChannel = member.guild.channels.cache.get(settings.logChannelId);
+            const targetChannelId = settings.logging?.memberLogsChannel || settings.logChannelId;
+            if (targetChannelId) {
+                const logChannel = member.guild.channels.cache.get(targetChannelId);
                 if (logChannel) {
                     const logEmbed = new EmbedBuilder()
-                        .setTitle('👋 Member Joined')
+                        .setTitle('Member Joined')
                         .setColor('#44ff44')
                         .setDescription(`**User:** ${member.user.tag}\n**ID:** ${member.id}`)
                         .addFields(
@@ -73,21 +53,21 @@ module.exports = {
                 }
             }
             
-            console.log('✅ Welcome enabled:', settings.welcomeMessage.enabled);
-            console.log('✅ Welcome channel ID:', settings.welcomeChannel);
+            console.log('Welcome enabled:', settings.welcomeMessage?.enabled);
+            console.log('Welcome channel ID:', settings.welcomeChannel);
             
-            if (!settings.welcomeMessage.enabled || !settings.welcomeChannel) {
-                console.log('⚠️ Welcome message disabled or no channel set');
+            if (!settings.welcomeMessage?.enabled || !settings.welcomeChannel) {
+                console.log('Welcome message disabled or no channel set');
                 return;
             }
             
             const channel = member.guild.channels.cache.get(settings.welcomeChannel);
             if (!channel) {
-                console.log('❌ Welcome channel not found:', settings.welcomeChannel);
+                console.log('Welcome channel not found:', settings.welcomeChannel);
                 return;
             }
             
-            console.log('✅ Sending welcome message to:', channel.name);
+            console.log('Sending welcome message to:', channel.name);
             
             const embed = new EmbedBuilder()
                 .setTitle(settings.welcomeMessage.title || 'Welcome!')

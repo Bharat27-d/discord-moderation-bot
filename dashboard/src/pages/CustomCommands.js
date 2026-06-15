@@ -124,7 +124,7 @@ function CustomCommands() {
                   className="btn-danger-small"
                   onClick={() => handleDelete(cmd._id, cmd.trigger)}
                 >
-                  🗑️
+                  Delete
                 </button>
               </div>
 

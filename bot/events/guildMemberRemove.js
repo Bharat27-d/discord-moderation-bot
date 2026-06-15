@@ -1,5 +1,21 @@
-const MemberLog = require('../models/MemberLog');
+
 const GuildSettings = require('../models/GuildSettings');
+
+function formatDuration(ms) {
+    if (!ms || ms < 0) return '0 seconds';
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / (1000 * 60)) % 60);
+    const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    
+    let parts = [];
+    if (days > 0) parts.push(`${days} days`);
+    if (hours > 0) parts.push(`${hours} hours`);
+    if (minutes > 0) parts.push(`${minutes} minutes`);
+    if (seconds > 0) parts.push(`${seconds} seconds`);
+    
+    return parts.length > 0 ? parts.join(' ') : '0 seconds';
+}
 
 module.exports = {
   name: 'guildMemberRemove',
@@ -16,43 +32,27 @@ module.exports = {
       const settings = await GuildSettings.findOne({ guildId: member.guild.id });
       if (!settings) return;
 
-      // Calculate account age
+      // Calculate account age and time spent
       const accountCreated = member.user.createdAt;
-      const accountAge = Math.floor((Date.now() - accountCreated.getTime()) / (1000 * 60 * 60 * 24)); // Days
-
-      // Save to database
-      const logEntry = new MemberLog({
-        guildId: member.guild.id,
-        userId: member.id,
-        userTag: member.user.tag,
-        userAvatar: member.user.displayAvatarURL({ dynamic: true }),
-        action: 'leave',
-        accountAge: accountAge,
-        accountCreated: accountCreated,
-        memberCount: member.guild.memberCount,
-        timestamp: new Date()
-      });
-
-      await logEntry.save();
-      console.log(`[MEMBER LEAVE] Logged to database`);
+      const accountAgeStr = formatDuration(Date.now() - accountCreated.getTime());
+      const timeSpentStr = member.joinedAt ? formatDuration(Date.now() - member.joinedAt.getTime()) : 'Unknown';
 
       // Send to log channel if configured
-      if (settings.logChannelId) {
-        const logChannel = member.guild.channels.cache.get(settings.logChannelId);
+      const targetChannelId = settings.logging?.memberLogsChannel || settings.logChannelId;
+      if (targetChannelId) {
+        const logChannel = member.guild.channels.cache.get(targetChannelId);
         if (logChannel) {
           const { EmbedBuilder } = require('discord.js');
           const embed = new EmbedBuilder()
-            .setTitle('👋 Member Left')
+            .setAuthor({ name: `${member.user.username} has left the server`, iconURL: member.user.displayAvatarURL({ dynamic: true }) })
             .setColor('#ff4444')
-            .setDescription(`**User:** ${member.user.tag}\n**ID:** ${member.id}`)
             .addFields(
-              { name: 'Account Created', value: `<t:${Math.floor(accountCreated.getTime() / 1000)}:R>`, inline: true },
-              { name: 'Account Age', value: `${accountAge} days`, inline: true },
-              { name: 'Member Count', value: member.guild.memberCount.toString(), inline: true }
+              { name: 'Account Creation Date', value: accountCreated.toUTCString(), inline: true },
+              { name: 'Time Spent', value: timeSpentStr, inline: true },
+              { name: 'Is Bot?', value: member.user.bot ? 'True' : 'False', inline: true },
+              { name: 'Account Age', value: accountAgeStr, inline: false }
             )
-            .setTimestamp()
-            .setFooter({ text: `User ID: ${member.id}` })
-            .setThumbnail(member.user.displayAvatarURL({ dynamic: true }));
+            .setFooter({ text: `${client.user?.username || 'Moderation Bot'}`, iconURL: client.user?.displayAvatarURL() });
 
           // Add roles if they had any
           if (member.roles.cache.size > 1) { // More than @everyone

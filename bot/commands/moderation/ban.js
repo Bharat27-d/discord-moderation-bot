@@ -52,11 +52,8 @@ module.exports = {
             // Query MongoDB if connected
             let settings = null;
             if (interaction.client.mongoConnected) {
-                try {
-                    settings = await GuildSettings.findOne({ guildId: interaction.guild.id });
-                } catch (err) {
-                    console.error('MongoDB error in ban command:', err.message);
-                }
+                const settingsCache = require('../../utils/cache');
+                settings = await settingsCache.getSettings(interaction.guild.id);
             }
             
             // Try to DM the user before banning

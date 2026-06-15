@@ -59,12 +59,12 @@ function Announcements() {
 
   const getStatusIcon = (status) => {
     const icons = {
-      pending: '⏳',
-      sent: '✅',
-      failed: '❌',
-      cancelled: '🚫',
+      pending: '',
+      sent: '',
+      failed: '',
+      cancelled: '',
     };
-    return icons[status] || '📢';
+    return icons[status] || '';
   };
 
   if (loading) {
@@ -87,7 +87,7 @@ function Announcements() {
       <div className="page-content">
         <div className="settings-container">
       <div className="settings-header">
-        <h1>📢 Scheduled Announcements</h1>
+        <h1>Scheduled Announcements</h1>
         <div className="settings-actions">
           <select value={filter} onChange={(e) => setFilter(e.target.value)} className="filter-select">
             <option value="all">All Announcements</option>

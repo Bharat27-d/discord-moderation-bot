@@ -88,6 +88,13 @@ const guildSettingsSchema = new mongoose.Schema({
         categoryId: { type: String, default: null },
         supportRoleId: { type: String, default: null },
         panelChannelId: { type: String, default: null }
+    },
+    logging: {
+        messageLogsChannel: { type: String, default: null },
+        memberLogsChannel: { type: String, default: null },
+        voiceLogsChannel: { type: String, default: null },
+        roleLogsChannel: { type: String, default: null },
+        modLogsChannel: { type: String, default: null }
     }
 }, {
     timestamps: true,

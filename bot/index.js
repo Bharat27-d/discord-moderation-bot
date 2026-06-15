@@ -60,8 +60,17 @@ async function connectMongoDB() {
     }
 }
 
-// Start MongoDB connection immediately
-connectMongoDB();
+async function start() {
+    await connectMongoDB();
+    
+    // Login to Discord only after DB connects
+    client.login(config.token)
+        .then(() => console.log('✅ Bot logged in successfully'))
+        .catch(err => console.error('❌ Bot login error:', err));
+}
+
+// Start the process
+start();
 
 // Monitor connection state
 mongoose.connection.on('connected', () => {
@@ -72,18 +81,12 @@ mongoose.connection.on('connected', () => {
 mongoose.connection.on('disconnected', () => {
     console.log('⚠️ MongoDB disconnected - retrying...');
     client.mongoConnected = false;
-    setTimeout(connectMongoDB, 5000);
 });
 
 mongoose.connection.on('error', (err) => {
     console.error('❌ MongoDB error:', err.message);
     client.mongoConnected = false;
 });
-
-// Login to Discord
-client.login(config.token)
-    .then(() => console.log('✅ Bot logged in successfully'))
-    .catch(err => console.error('❌ Bot login error:', err));
 
 // Error handling
 process.on('unhandledRejection', error => {

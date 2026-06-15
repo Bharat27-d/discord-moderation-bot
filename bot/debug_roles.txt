@@ -1,0 +1,6 @@
+[DEBUG MEMBER UPDATE] User: bharat_27, oldRoles size: 1, newRoles size: 3
+Added Roles detected: 2
+[DEBUG MEMBER UPDATE] User: bharat_27, oldRoles size: 3, newRoles size: 4
+Added Roles detected: 1
+[DEBUG MEMBER UPDATE] User: bharat_27, oldRoles size: 4, newRoles size: 5
+Added Roles detected: 1

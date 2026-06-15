@@ -40,17 +40,17 @@ function VoiceLogs() {
 
   const getActionIcon = (action) => {
     const icons = {
-      join: '🔵',
-      leave: '🔴',
-      move: '🔄',
-      mute: '🔇',
-      unmute: '🔊',
-      deafen: '🔕',
-      undeafen: '🔔',
-      stream_start: '📹',
-      stream_stop: '⏹️',
+      join: '',
+      leave: '',
+      move: '',
+      mute: '',
+      unmute: '',
+      deafen: '',
+      undeafen: '',
+      stream_start: '',
+      stream_stop: '',
     };
-    return icons[action] || '📢';
+    return icons[action] || '';
   };
 
   const getActionColor = (action) => {
@@ -98,7 +98,7 @@ function VoiceLogs() {
       <div className="page-content">
         <div className="logs-container">
       <div className="logs-header">
-        <h1>🎤 Voice Activity Logs</h1>
+        <h1>Voice Activity Logs</h1>
         <div className="logs-filters">
           <select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} className="filter-select">
             <option value="all">All Actions</option>
@@ -149,16 +149,16 @@ function VoiceLogs() {
                   {log.action === 'move' ? (
                     <>
                       <span className="channel-name">
-                        📢 {log.oldChannelName || 'Unknown'}
+                        {log.oldChannelName || 'Unknown'}
                       </span>
                       <span style={{ margin: '0 8px', color: '#888' }}>→</span>
                       <span className="channel-name">
-                        📢 {log.newChannelName || 'Unknown'}
+                        {log.newChannelName || 'Unknown'}
                       </span>
                     </>
                   ) : (
                     <span className="channel-name">
-                      📢 {log.channelName || log.oldChannelName || log.newChannelName || 'Unknown'}
+                      {log.channelName || log.oldChannelName || log.newChannelName || 'Unknown'}
                     </span>
                   )}
                 </div>

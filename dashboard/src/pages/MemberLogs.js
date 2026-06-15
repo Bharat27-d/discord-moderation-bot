@@ -40,13 +40,13 @@ function MemberLogs() {
 
   const getActionIcon = (action) => {
     const icons = {
-      join: '📥',
-      leave: '📤',
-      nickname_change: '✏️',
-      username_change: '🏷️',
-      avatar_change: '🖼️',
+      join: '',
+      leave: '',
+      nickname_change: '',
+      username_change: '',
+      avatar_change: '',
     };
-    return icons[action] || '👤';
+    return icons[action] || '';
   };
 
   const getActionColor = (action) => {
@@ -84,7 +84,7 @@ function MemberLogs() {
       <div className="page-content">
         <div className="logs-container">
       <div className="logs-header">
-        <h1>👥 Member Activity Logs</h1>
+        <h1>Member Activity Logs</h1>
         <div className="logs-filters">
           <select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(1); }} className="filter-select">
             <option value="all">All Actions</option>
@@ -132,7 +132,7 @@ function MemberLogs() {
                     <div className="join-info">
                       <span>Member #{log.memberCount || 'N/A'}</span>
                       {isNewAccount(log.accountAge) && (
-                        <span className="warning-badge">⚠️ New Account</span>
+                        <span className="warning-badge">New Account</span>
                       )}
                     </div>
                   )}

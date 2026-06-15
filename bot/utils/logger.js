@@ -1,51 +1,20 @@
 const { EmbedBuilder } = require('discord.js');
-const ModerationCase = require('../models/ModerationCase');
+
 
 async function moderationLog(guild, data, settings) {
     try {
         console.log(`📝 Creating moderation log for ${data.action} in ${guild.name}`);
         let caseId = Date.now() % 10000; // Default fallback
         
-        // Try to create moderation case in database if connected
-        const mongoose = require('mongoose');
-        console.log('🔌 MongoDB connection state:', mongoose.connection.readyState);
-        
-        if (mongoose.connection.readyState === 1) {
-            try {
-                const lastCase = await ModerationCase.findOne({ guildId: guild.id })
-                    .sort({ caseId: -1 })
-                    .limit(1);
-                
-                caseId = lastCase ? lastCase.caseId + 1 : 1;
-                console.log('✅ Case ID assigned:', caseId);
-                
-                const modCase = new ModerationCase({
-                    guildId: guild.id,
-                    caseId,
-                    userId: data.user.id,
-                    moderatorId: data.moderator.id,
-                    action: data.action,
-                    reason: data.reason || 'No reason provided',
-                    duration: data.duration || null,
-                    timestamp: new Date(),
-                    active: true
-                });
-                
-                await modCase.save();
-                console.log('✅ Moderation case saved to database');
-            } catch (dbError) {
-                console.error('❌ MongoDB error in moderationLog:', dbError.message);
-                // Continue with fallback caseId
-            }
-        } else {
-            console.log('⚠️ MongoDB not connected, using fallback case ID');
-        }
+        // Remove database saving, just use fallback caseId
+        console.log('Using fallback case ID since database logging is disabled');
         
         // Send log embed if channel is configured
-        console.log('📢 Checking modLog channel:', settings?.modLog || 'None');
+        const targetChannelId = settings?.logging?.modLogsChannel || settings?.modLog;
+        console.log('📢 Checking modLog channel:', targetChannelId || 'None');
         
-        if (settings && settings.modLog) {
-            const channel = guild.channels.cache.get(settings.modLog);
+        if (targetChannelId) {
+            const channel = guild.channels.cache.get(targetChannelId);
             console.log('📍 Found modLog channel:', channel ? channel.name : 'Not found');
             
             if (channel) {

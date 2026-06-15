@@ -98,7 +98,7 @@ function Logs() {
                 <div className="page-content">
                     <div className="container">
                         <div className="logs-header">
-                            <h1>⚖️ Moderation Logs</h1>
+                            <h1>Moderation Logs</h1>
                             <button 
                                 className="filter-btn"
                                 onClick={() => setShowFilters(!showFilters)}

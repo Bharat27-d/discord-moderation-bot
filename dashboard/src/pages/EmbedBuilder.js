@@ -425,13 +425,13 @@ function EmbedBuilder() {
                                                 type="color"
                                                 className="color-input"
                                                 value={embed.color}
-                                                onChange={(e) => updateEmbed('color', e.target. value)}
+                                                onChange={(e) => updateEmbed('color', e.target.value)}
                                             />
                                             <input 
                                                 type="text"
                                                 className="form-input"
                                                 value={embed.color}
-                                                onChange={(e) => updateEmbed('color', e.target. value)}
+                                                onChange={(e) => updateEmbed('color', e.target.value)}
                                                 placeholder="#5865f2"
                                             />
                                         </div>

@@ -24,9 +24,20 @@ function Settings() {
                 api.get(`/api/server/${id}/settings`)
             ]);
 
+            const settingsData = settingsRes.data.settings;
+            if (!settingsData.logging) {
+                settingsData.logging = {
+                    messageLogsChannel: '',
+                    memberLogsChannel: '',
+                    voiceLogsChannel: '',
+                    roleLogsChannel: '',
+                    modLogsChannel: ''
+                };
+            }
+            
             setChannels(channelsRes.data.channels);
             setRoles(rolesRes.data.roles);
-            setSettings(settingsRes.data.settings);
+            setSettings(settingsData);
         } catch (error) {
             console.error('Failed to fetch data:', error);
             toast.error('Failed to load settings');
@@ -174,6 +185,12 @@ function Settings() {
                             >
                                 Punishments
                             </button>
+                            <button 
+                                className={`settings-tab ${activeTab === 'logging' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('logging')}
+                            >
+                                Logging
+                            </button>
                         </div>
 
                         {/* General Settings Tab */}
@@ -190,7 +207,7 @@ function Settings() {
                                     >
                                         <option value="">None</option>
                                         {channels.map(channel => (
-                                            <option key={channel. id} value={channel.id}>
+                                            <option key={channel.id} value={channel.id}>
                                                 #{channel.name}
                                             </option>
                                         ))}
@@ -238,7 +255,7 @@ function Settings() {
                                     >
                                         <option value="">None</option>
                                         {channels.map(channel => (
-                                            <option key={channel. id} value={channel.id}>
+                                            <option key={channel.id} value={channel.id}>
                                                 #{channel.name}
                                             </option>
                                         ))}
@@ -255,10 +272,81 @@ function Settings() {
                                         <option value="">None</option>
                                         {channels.map(channel => (
                                             <option key={channel.id} value={channel.id}>
-                                                #{channel. name}
+                                                #{channel.name}
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Logging Settings Tab */}
+                        {activeTab === 'logging' && (
+                            <div className="card">
+                                <h2>Discord Logging Channels</h2>
+                                <p className="text-gray-400 mb-6 text-sm">
+                                    Paste the Discord Channel ID where you want the bot to send these logs. 
+                                    Leave blank to disable logging for that category.
+                                </p>
+
+                                <div className="form-group">
+                                    <label className="form-label">Message Logs Channel ID</label>
+                                    <input 
+                                        type="text"
+                                        className="form-input"
+                                        value={settings.logging?.messageLogsChannel || ''}
+                                        onChange={(e) => updateSetting('logging.messageLogsChannel', e.target.value)}
+                                        placeholder="e.g. 123456789012345678"
+                                    />
+                                    <small>Deleted and edited messages</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Member Logs Channel ID</label>
+                                    <input 
+                                        type="text"
+                                        className="form-input"
+                                        value={settings.logging?.memberLogsChannel || ''}
+                                        onChange={(e) => updateSetting('logging.memberLogsChannel', e.target.value)}
+                                        placeholder="e.g. 123456789012345678"
+                                    />
+                                    <small>Joins, leaves, username, and avatar changes</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Voice Logs Channel ID</label>
+                                    <input 
+                                        type="text"
+                                        className="form-input"
+                                        value={settings.logging?.voiceLogsChannel || ''}
+                                        onChange={(e) => updateSetting('logging.voiceLogsChannel', e.target.value)}
+                                        placeholder="e.g. 123456789012345678"
+                                    />
+                                    <small>Voice channel joins, leaves, moves, mutes, and deafens</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Role Logs Channel ID</label>
+                                    <input 
+                                        type="text"
+                                        className="form-input"
+                                        value={settings.logging?.roleLogsChannel || ''}
+                                        onChange={(e) => updateSetting('logging.roleLogsChannel', e.target.value)}
+                                        placeholder="e.g. 123456789012345678"
+                                    />
+                                    <small>Role creation, deletion, and updates</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Moderation Logs Channel ID</label>
+                                    <input 
+                                        type="text"
+                                        className="form-input"
+                                        value={settings.logging?.modLogsChannel || ''}
+                                        onChange={(e) => updateSetting('logging.modLogsChannel', e.target.value)}
+                                        placeholder="e.g. 123456789012345678"
+                                    />
+                                    <small>Warns, kicks, bans, and timeouts (Replaces the general Mod Log)</small>
                                 </div>
                             </div>
                         )}
@@ -482,7 +570,7 @@ function Settings() {
                                                 <textarea 
                                                     className="form-textarea"
                                                     value={settings.welcomeMessage.description}
-                                                    onChange={(e) => updateSetting('welcomeMessage.description', e.target. value)}
+                                                    onChange={(e) => updateSetting('welcomeMessage.description', e.target.value)}
                                                     placeholder="Use {user}, {server}, {memberCount} as variables"
                                                 />
                                             </div>
